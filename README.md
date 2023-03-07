@@ -9,3 +9,7 @@ https://opentelemetry.io/docs/instrumentation/go/
 https://opentelemetry.io/docs/instrumentation/go/getting-started/
 
 https://github.com/open-telemetry/opentelemetry-go/tree/main/example/fib
+
+https://github.com/grpc/grpc-go/blob/master/Documentation/grpc-metadata.md
+
+https://github.com/grpc/grpc-go/blob/master/examples/features/interceptor/README.md
