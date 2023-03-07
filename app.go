@@ -45,6 +45,13 @@ func (a *App) Run(ctx context.Context) error {
 
 // Poll asks a user for input and returns the request.
 func (a *App) Poll(ctx context.Context) (uint, error) {
+
+	//In OpenTelemetry Go the span relationships are defined explicitly with a context.Context.
+	//When a span is created a context is returned alongside the span.
+	//That context will contain a reference to the created span.
+	//If that context is used when creating another span the two spans will be related.
+	//The original span will become the new span’s parent,
+	//and as a corollary, the new span is said to be a child of the original.
 	_, span := otel.Tracer(name).Start(ctx, "Poll")
 	defer span.End()
 

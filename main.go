@@ -29,15 +29,35 @@ func main() {
 		l.Fatal(err)
 	}
 
+	//Installing a Tracer Provider
+	//
+	//You have your application instrumented to produce telemetry data
+	//and you have an exporter to send that data to the console,
+	//but how are they connected?
+	//This is where the TracerProvider is used.
+	//这是一个集中点，instrumentation 将从这里获取 Tracer 然后将来自这些 Tracer 的指标数据汇聚到导出管道。
+	//It is a centralized point
+	//where instrumentation will get a Tracer from and funnels the telemetry data from these Tracers to export pipelines.
+	//
+	//The pipelines that receive and ultimately transmit data to exporters are called SpanProcessors.
+	//A TracerProvider can be configured to have multiple span processors,
+	//but for this example you will only need to configure only one.
+	//
+	// Tracer 负责在程序现场产生指标数据, Exporter 负责将数据持久化到相应的位置.
+	// TracerProvider 连接了 Tracer 和 Exporter.
 	tp := trace.NewTracerProvider(
 		trace.WithBatcher(exp),
 		trace.WithResource(newResource()),
 	)
+	//Finally, with the TracerProvider created, you are deferring a function to flush and stop it.
 	defer func() {
 		if err := tp.Shutdown(context.Background()); err != nil {
 			l.Fatal(err)
 		}
 	}()
+	//Registering it as the global OpenTelemetry TracerProvider.
+	//This last step, registering the TracerProvider globally,
+	//is what will connect that instrumentation’s Tracer with this TracerProvider.
 	otel.SetTracerProvider(tp)
 
 	sigCh := make(chan os.Signal, 1)
@@ -70,6 +90,13 @@ func newExporter(w io.Writer) (trace.SpanExporter, error) {
 		stdouttrace.WithoutTimestamps(),
 	)
 }
+
+//Creating a Resource
+//
+//Telemetry data can be crucial to solving issues with a service.
+//The catch is, you need a way to identify what service, or even what service instance, that data is coming from.
+//OpenTelemetry 使用 Resource 来代表产生指标数据的实体.
+//OpenTelemetry uses a Resource to represent the entity producing telemetry.
 
 // newResource returns a resource describing this application.
 func newResource() *resource.Resource {
