@@ -4,9 +4,10 @@ import (
 	"context"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.18.0"
 	"io"
 	"log"
@@ -17,14 +18,20 @@ import (
 func main() {
 	l := log.New(os.Stdout, "", 0)
 
-	// Write telemetry data to a file.
-	f, err := os.Create("traces.txt")
-	if err != nil {
-		l.Fatal(err)
-	}
-	defer f.Close()
+	//// Write telemetry data to a file.
+	//f, err := os.Create("traces.txt")
+	//if err != nil {
+	//	l.Fatal(err)
+	//}
+	//defer f.Close()
+	//
+	//exp, err := newWriterExporter(f)
+	//if err != nil {
+	//	l.Fatal(err)
+	//}
 
-	exp, err := newExporter(f)
+	JaegerURI := "http://localhost:14268/api/traces"
+	exp, err := newJaegerExporter(JaegerURI)
 	if err != nil {
 		l.Fatal(err)
 	}
@@ -45,9 +52,9 @@ func main() {
 	//
 	// Tracer 负责在程序现场产生指标数据, Exporter 负责将数据持久化到相应的位置.
 	// TracerProvider 连接了 Tracer 和 Exporter.
-	tp := trace.NewTracerProvider(
-		trace.WithBatcher(exp),
-		trace.WithResource(newResource()),
+	tp := tracesdk.NewTracerProvider(
+		tracesdk.WithBatcher(exp),
+		tracesdk.WithResource(newResource()),
 	)
 	//Finally, with the TracerProvider created, you are deferring a function to flush and stop it.
 	defer func() {
@@ -80,8 +87,8 @@ func main() {
 	}
 }
 
-// newExporter returns a console exporter.
-func newExporter(w io.Writer) (trace.SpanExporter, error) {
+// newWriterExporter returns a writer exporter.
+func newWriterExporter(w io.Writer) (tracesdk.SpanExporter, error) {
 	return stdouttrace.New(
 		stdouttrace.WithWriter(w),
 		// Use human-readable output.
@@ -89,6 +96,12 @@ func newExporter(w io.Writer) (trace.SpanExporter, error) {
 		// Do not print timestamps for the demo.
 		stdouttrace.WithoutTimestamps(),
 	)
+}
+
+// newJaegerExporter returns a jaeger exporter.
+func newJaegerExporter(url string) (tracesdk.SpanExporter, error) {
+	// Create the Jaeger exporter
+	return jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(url)))
 }
 
 //Creating a Resource
