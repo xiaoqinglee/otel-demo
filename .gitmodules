@@ -1,0 +1,3 @@
+[submodule "official_examples"]
+	path = official_examples
+	url = git@github.com:open-telemetry/opentelemetry-go-contrib.git
